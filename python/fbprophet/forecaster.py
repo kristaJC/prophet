@@ -1080,9 +1080,16 @@ class Prophet(object):
                 iter=self.mcmc_samples,
             )
             args.update(kwargs)
-            stan_fit = model.sampling(**args)
-            for par in stan_fit.model_pars:
-                self.params[par] = stan_fit[par]
+            #stan_fit = model.sampling(**args)
+            #for par in stan_fit.model_pars:
+            #    self.params[par] = stan_fit[par]
+            
+            ### Edited to:
+            ### To include variational Bayes inference in the sampling method
+            stan_fit = model.vb(algorithm = 'fullrank',**args)
+            for i in range(len(stan_fit['mean_par_names'])):
+                par, val = stan_fit['mean_par_names][i], stan_fit['mean_pars'][i]
+                self.params[par] = val
                 # Shape vector parameters
                 if par in ['delta', 'beta'] and len(self.params[par].shape) < 2:
                     self.params[par] = self.params[par].reshape((-1, 1))
